@@ -1,58 +1,187 @@
-﻿// See https://aka.ms/new-console-template for more information
-/// <summary>
-///  Top-level statements 
-///  Код програми (оператори)  вищого рівня
-/// </summary>
-///
-Console.WriteLine("Lab5 C# ");
-AnyFunc();
+﻿using System;
+using System.Collections.Generic;
 
-/// <summary>
-/// 
-///  Top-level statements must precede namespace and type declarations.
-/// At the top-level methods/functions can be defined and used
-/// На верхньому рівні можна визначати та використовувати методи/функції
-/// </summary>
-void AnyFunc()
+namespace Lab5
 {
-    Console.WriteLine(" Some function in top-level");
-}
-Console.WriteLine("Problems 1 ");
-AnyFunc();
-//  приклад класів
-UserClass cl = new UserClass();
-cl.Name = " UserClass top-level ";
-User.UserClass cl2 = new();
-cl2.Name = " UserClass namespace User ";
-
-
-
-
-/// <summary>
-/// 
-/// Top-level statements must precede namespace and type declarations.
-/// Оператори верхнього рівня мають передувати оголошенням простору імен і типу.
-/// Створення класу(ів) або оголошенням простору імен є закіченням  іструкцій верхнього рівня
-/// 
-/// </summary>
-
-namespace User
-{
-    class UserClass
+    // 1.9 / 2.9 — Успадкування та конструктори
+    class Product
     {
-        public string Name { get; set; }
-       public  UserClass()
+        public string Name;
+        public double Price;
+
+        public Product() => Console.WriteLine("Product()");
+        public Product(string name, double price)
         {
-            Name = "NoName";
+            Name = name; Price = price;
+            Console.WriteLine("Product(string, double)");
         }
-        UserClass(string n)
-        {
-            Name = n;
-        }
+
+        public virtual void Show() => Console.WriteLine($"Product: {Name}, Price: {Price}");
+        ~Product() => Console.WriteLine("~Product()");
     }
 
-}
-class UserClass
-{
-    public string Name { get; set; }
+    class Item : Product
+    {
+        public string Manufacturer;
+        public Item() => Console.WriteLine("Item()");
+        public Item(string name, double price, string manufacturer)
+            : base(name, price)
+        {
+            Manufacturer = manufacturer;
+            Console.WriteLine("Item(string, double, string)");
+        }
+        public override void Show()
+        {
+            base.Show();
+            Console.WriteLine($"Manufacturer: {Manufacturer}");
+        }
+        ~Item() => Console.WriteLine("~Item()");
+    }
+
+    class Toy : Item
+    {
+        public string Material;
+        public Toy() => Console.WriteLine("Toy()");
+        public Toy(string name, double price, string manufacturer, string material)
+            : base(name, price, manufacturer)
+        {
+            Material = material;
+            Console.WriteLine("Toy(string, double, string, string)");
+        }
+        public override void Show()
+        {
+            base.Show();
+            Console.WriteLine($"Material: {Material}");
+        }
+        ~Toy() => Console.WriteLine("~Toy()");
+    }
+
+    class DairyProduct : Item
+    {
+        public DateTime ExpiryDate;
+        public DairyProduct(string name, double price, string manufacturer, DateTime expiry)
+            : base(name, price, manufacturer)
+        {
+            ExpiryDate = expiry;
+            Console.WriteLine("DairyProduct(...)");
+        }
+        public override void Show()
+        {
+            base.Show();
+            Console.WriteLine($"Expiry: {ExpiryDate.ToShortDateString()}");
+        }
+        ~DairyProduct() => Console.WriteLine("~DairyProduct()");
+    }
+
+    // 3.9 — Абстрактний клас "Клієнт"
+    abstract class Client
+    {
+        public abstract void Show();
+        public abstract bool IsFromDate(DateTime date);
+    }
+
+    class Depositor : Client
+    {
+        public string Name;
+        public DateTime OpenDate;
+        public double Amount;
+        public double Interest;
+
+        public Depositor(string name, DateTime date, double amount, double interest)
+        {
+            Name = name; OpenDate = date; Amount = amount; Interest = interest;
+        }
+
+        public override void Show() =>
+            Console.WriteLine($"Depositor: {Name}, Date: {OpenDate.ToShortDateString()}, Sum: {Amount}, Interest: {Interest}%");
+        public override bool IsFromDate(DateTime date) => OpenDate.Date == date.Date;
+    }
+
+    class Creditor : Client
+    {
+        public string Name;
+        public DateTime CreditDate;
+        public double Amount;
+        public double Interest;
+        public double Remainder;
+
+        public Creditor(string name, DateTime date, double amount, double interest, double remainder)
+        {
+            Name = name; CreditDate = date; Amount = amount; Interest = interest; Remainder = remainder;
+        }
+
+        public override void Show() =>
+            Console.WriteLine($"Creditor: {Name}, Date: {CreditDate.ToShortDateString()}, Credit: {Amount}, Left: {Remainder}");
+        public override bool IsFromDate(DateTime date) => CreditDate.Date == date.Date;
+    }
+
+    class Organization : Client
+    {
+        public string Name;
+        public DateTime OpenDate;
+        public string Account;
+        public double Balance;
+
+        public Organization(string name, DateTime date, string account, double balance)
+        {
+            Name = name; OpenDate = date; Account = account; Balance = balance;
+        }
+
+        public override void Show() =>
+            Console.WriteLine($"Organization: {Name}, Account: {Account}, Open: {OpenDate.ToShortDateString()}, Balance: {Balance}");
+        public override bool IsFromDate(DateTime date) => OpenDate.Date == date.Date;
+    }
+
+    // 4.9 — структура "Пацієнт"
+    struct Patient
+    {
+        public string Surname, Address, Card, Insurance;
+        public Patient(string s, string a, string c, string i)
+        {
+            Surname = s; Address = a; Card = c; Insurance = i;
+        }
+        public void Show() => Console.WriteLine($"{Surname}, {Address}, Card: {Card}, Insurance: {Insurance}");
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            Console.WriteLine("=== Task 1.9 / 2.9 ===");
+            Toy toy = new Toy("LEGO", 599.99, "LEGO Group", "Plastic");
+            toy.Show();
+
+            DairyProduct milk = new DairyProduct("Молоко", 39.90, "Галичина", DateTime.Now.AddDays(10));
+            milk.Show();
+
+            Console.WriteLine("\n=== Task 3.9 ===");
+            Client[] clients = {
+                new Depositor("Іванов", new DateTime(2024,1,1), 10000, 5),
+                new Creditor("Петренко", new DateTime(2023,12,20), 20000, 12, 5000),
+                new Organization("ТОВ Соняшник", new DateTime(2023,6,15), "ACC123", 180000)
+            };
+
+            foreach (var client in clients) client.Show();
+
+            Console.WriteLine("\n=== Search by date 01.01.2024 ===");
+            foreach (var client in clients)
+                if (client.IsFromDate(new DateTime(2024, 1, 1))) client.Show();
+
+            Console.WriteLine("\n=== Task 4.9 ===");
+            List<Patient> patients = new List<Patient> {
+                new Patient("Іванов", "Чернівці", "C001", "S100"),
+                new Patient("Петренко", "Київ", "C002", "S101"),
+                new Patient("Шевченко", "Львів", "C003", "S102"),
+            };
+
+            // Видалення за номером карти
+            patients.RemoveAll(p => p.Card == "C002");
+
+            // Додавання на початок
+            patients.Insert(0, new Patient("Новий", "Одеса", "C004", "S103"));
+            patients.Insert(0, new Patient("ЩеНовий", "Харків", "C005", "S104"));
+
+            foreach (var p in patients) p.Show();
+        }
+    }
 }
